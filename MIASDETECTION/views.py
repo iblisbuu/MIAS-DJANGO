@@ -19,7 +19,7 @@ from io import BytesIO, StringIO
 import os
 
 #google cloud vision api key for authentication
-googleapikey = 'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDQ6OmhEqEKvbIiHmjOz_ZIZW4ZTAwdmKA'
+googleapikey = 'your google api key'
 
 ###########################################################################
 #  Def Name     : detectionHome

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>{% block head_title %}RUZIVO {% endblock %}</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.14/css/dataTables.bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+  .carousel-inner > .item > img,
+  .carousel-inner > .item > a > img {
+      width: 100%;
+      margin: auto;
+  }
+
+  .navbar-default .navbar-nav {
+   font-size:15px;
+  }
+  </style>
+</head>
+<body style="padding-bottom: 60px; padding-top: 60px">
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/home" style="color: white;">RUZIVO</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="/storage" style="color: white;">Media Management</a></li>
+        <li><a href="/detection" style="color: white;">Detection</a></li>
+        <li><a href="/segmentation" style="color: white;">Segmentation</a></li>
+        <li><a href="/imageCrop" style="color: white;">Image Cropping</a></li>
+		<!--<li><a href="/imageSearch" style="color: white;">Image Search</a></li>-->
+        <li><a href="/workflow" style="color: white;">Work Flow</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+          <!--<li><a id="registrationLink" href="/registration" style="color: white; display: none;"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>-->
+          <li><a id="loginLink" href="/login" style="color: white; display: none;"><span class="glyphicon glyphicon-log-in"></span>&nbsp; Login</a></li>
+          <li><a id="logoutLink" href="/logout" style="color: white; display: none;"><span class="glyphicon glyphicon-log-out"></span>&nbsp; Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="container">
+{% block content %}
+{% endblock %}
+</div>
+<nav class="navbar navbar-inverse navbar-fixed-bottom" style="text-align: center;display: grid; color: white;">
+  &copy; RUZIVO
+</nav>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+{% if loggedIn %}
+<script>
+ document.getElementById("logoutLink").style.display = "inherit";
+</script>
+{% else %}
+<script>
+ //document.getElementById("registrationLink").style.display = "inherit";
+ document.getElementById("loginLink").style.display = "inherit";
+ //document.getElementById("logoutLink").style.display = "inherit";
+</script>
+{% endif %}
+</body>
+</html>

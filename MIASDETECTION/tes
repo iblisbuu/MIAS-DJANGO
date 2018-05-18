@@ -1,0 +1,299 @@
+from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
+from django.conf import settings
+#from google.cloud import storage
+from MIASSTORAGE import storage
+from datetime import datetime
+from google.cloud import vision
+from PIL import Image, ImageDraw
+import json
+import base64
+import requests
+from io import BytesIO, StringIO
+import os
+
+
+googleapikey = 'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDQ6OmhEqEKvbIiHmjOz_ZIZW4ZTAwdmKA'
+
+# Create your views here.
+def detectionHome(request):
+	if request.method == 'GET':
+		try:
+			loggedInUser = request.session['uEmail']
+		except:
+			#return redirect('/login')
+			return redirect('/welcome')
+		response = storage.list_buckets(settings.CLOUD_PROJECT_ID)
+		objects = {}
+		for lstbct in response['items']:
+			if lstbct['name'].startswith('datacore'):
+				blobs = []
+				respobject = storage.list_objects(lstbct['name'])
+				for index, bct in enumerate(respobject):
+					# print(bct)
+					if 'segment/' in str(bct['name']):
+						pass
+					else:
+						blobs.append({'index': index, 'name': str(bct['name']),
+									  'public_url': 'https://storage.googleapis.com/' + lstbct['name'] + '/' + str(bct['name']),
+									  'timecreated': datetime.strptime(str(bct['timeCreated']), '%Y-%m-%dT%H:%M:%S.%fZ'),
+									  'type': str(bct['contentType'])})
+				objects.update({lstbct['name']: blobs})
+		context = {
+			'loggedIn': True,
+			'objects': objects,
+		}
+		return render(request, 'detectionHome.html', context)
+	else:
+		if request.POST['submit'] == 'Image View':
+			selectedImages = request.POST.getlist('miasimages')
+			miasImagesStorage = storage.Client()
+			miasBucket = miasImagesStorage.get_bucket(settings.CLOUD_STORAGE_BUCKET)
+			images = miasBucket.list_blobs()
+			filteredImages = []
+			for image in images:
+				# if image.name.endswith('/'):
+				if 'segment/' in image.name:
+					pass
+				else:
+					filteredImages.append({'url': image.public_url, 'name': image.name})
+
+			result = []
+			for eachImage in selectedImages:
+				fname = str(os.path.basename(eachImage))
+				result.append({'imageUrl': eachImage, 'name': fname})
+
+			context = {
+				'loggedIn': True,
+				'operation' : 'Image View',
+				'miasimages': filteredImages,
+				'result' : result,
+			}
+			return render(request, 'detectionHome.html', context)
+		elif request.POST['submit'] == 'Text Detection':
+			features = '5:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = {}
+			for image in selectedImages:
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				__text = __generate_json(selectedImage, features)
+				if 'textAnnotations' in __text:
+					for index, ttext in enumerate(__text['textAnnotations'], start = 0):
+						if index == 0:
+							result[image] = str(ttext['description'])
+				else:
+					result[image] = 'No text in the image'
+			context = {
+				'loggedIn': True,
+				'operation' : 'Text Detection',
+				'resultKeys' : result.keys(),
+				'result' : result,
+			}
+			return render(request, 'detectionresult.html', context)
+		elif request.POST['submit'] == 'Logo Detection' :
+			features = '3:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = []
+			for image in selectedImages:
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				__logo = __generate_json(selectedImage, features)
+				if 'logoAnnotations' in __logo:
+					for index, tlogo in enumerate(__logo['logoAnnotations'], start = 0):
+						result.append({ 'imageUrl': image, 'logoDescription': str(tlogo['description']), 'percent': str(round(tlogo['score'] * 100)) })
+				else:
+					result.append({ 'imageUrl': image, 'logoDescription': 'No Logo in the image', 'percent': '0' })
+			context = {
+				'loggedIn': True,
+				'operation' : 'Logo Detection',
+				'result' : result,
+			}
+			return render(request, 'detectionresult.html', context)
+		elif request.POST['submit'] == 'Text Display':
+			features = '5:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = []
+			for image in selectedImages:
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				text = __generate_json(selectedImage, features)
+				im = Image.open(BytesIO(response.content))
+				draw = ImageDraw.Draw(im)
+				if 'textAnnotations' in text:
+					for index, ttext in enumerate(text['textAnnotations'], start=0):
+						if index != 0:
+							boundpoly = ttext['boundingPoly']['vertices'][0]
+							x = boundpoly['x']
+							y = boundpoly['y']
+							boundpolyvert = ttext['boundingPoly']['vertices'][1]
+							xh = boundpolyvert['x']
+							yh = boundpolyvert['y']
+							__boundpolyvert_2 = ttext['boundingPoly']['vertices'][2]
+							yh = __boundpolyvert_2['y']
+							__boundpolyvert_2 = ttext['boundingPoly']['vertices'][3]
+							cor = (x,y, xh,yh)
+							for i in range(3):
+								draw.rectangle(cor, outline="red")
+								cor = (cor[0]+1,cor[1]+1, cor[2]+1,cor[3]+1)
+					inMemory = BytesIO()
+					im.save(inMemory, format='jpeg')
+					inMemory.seek(0)
+					imgBytes = inMemory.read()
+					b64Image = base64.b64encode(imgBytes)
+					result.append({'originalImage' : image, 'modifiedImage' : b64Image})
+				else:
+					result.append({'originalImage' : image, 'modifiedImage' : '0'})
+			context = {
+				'loggedIn': True,
+				'operation' : 'Text Display',
+				'result': result,
+			}
+			return render(request, 'detectionresult.html', context)
+		elif request.POST['submit'] == 'Logo Display':
+			features = '3:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = []
+			for image in selectedImages:
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				t = __generate_json(selectedImage, features)
+				if 'logoAnnotations' in t:
+					t = t['logoAnnotations'][0]
+					boundpoly = t['boundingPoly']['vertices'][0]
+					x = boundpoly['x']
+					y = boundpoly['y']
+					boundpolyvert = t['boundingPoly']['vertices'][1]
+					xh = boundpolyvert['x']
+					yh = boundpolyvert['y']
+					__boundpolyvert_2 = t['boundingPoly']['vertices'][2]
+					yh = __boundpolyvert_2['y']
+					__boundpolyvert_2 = t['boundingPoly']['vertices'][3]
+					im = Image.open(BytesIO(response.content))
+					draw = ImageDraw.Draw(im)
+					cor = (x,y, xh,yh)
+					for i in range(5):
+						draw.rectangle(cor, outline = 'red')
+						cor = (cor[0]+1, cor[1]+1, cor[2]+1, cor[3]+1)
+					inMemory = BytesIO()
+					im.save(inMemory, format='png')
+					inMemory.seek(0)
+					imgBytes = inMemory.read()
+					b64Image = base64.b64encode(imgBytes)
+					result.append({'originalImage' : image, 'modifiedImage' : b64Image})
+				else:
+					result.append({'originalImage' : image, 'modifiedImage' : '0'})
+			context = {
+				'loggedIn': True,
+				'operation' : 'Logo Display',
+				'result': result,
+			}
+			return render(request, 'detectionresult.html', context)
+		elif request.POST['submit'] == 'Label Detection':
+			features = '4:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = []
+			for image in selectedImages:
+				labelDetectionResult = []
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				__label = __generate_json(selectedImage, features)
+				if 'labelAnnotations' in __label:
+					for index, tlabel in enumerate(__label['labelAnnotations'], start=0):
+						labelDetectionResult.append({'labelDescription' : str(tlabel['description']), 'percent' : str(round(tlabel['score'] * 100))})
+					result.append({'imageUrl' : image, 'labelDetectionResult' : labelDetectionResult })
+				else:
+					labelDetectionResult.append({'labelDescription' : 'No label in the image', 'percent' : '0'})
+					result.append({ 'imageUrl': image, 'labelDetectionResult': labelDetectionResult })
+			context = {
+				'loggedIn': True,
+				'operation' : 'Label Detection',
+				'result' : result,
+			}
+			return render(request, 'detectionresult.html', context)
+		elif request.POST['submit'] == 'Automatic Annotation':
+			features = '3:10 4:10 5:10'
+			selectedImages = request.POST.getlist('miasimages')
+			result = []
+			for image in selectedImages:
+				resultDictionary = {'imageUrl': '', 'fileName' : '', 'mediaType' : '', 'advertise' : None, 'logo' : '', 'logoPercent' : '', 'headLine' : '', 'text' : ''}
+				resultLabelDictionary = []
+				resultDictionary['imageUrl'] = image
+				response = requests.get(image)
+				selectedImage = base64.b64encode(BytesIO(response.content).getvalue()).decode()
+				__resp = __generate_json(selectedImage, features)
+				resultDictionary['fileName'] = image.split('/')[4]
+				resultDictionary['mediaType'] = 'Image'
+				resultDictionary['headLine'] = 'N/A'
+				if 'textAnnotations' in __resp:
+					for index, ttext in enumerate(__resp['textAnnotations'], start = 0):   # Python indexes start at zero
+						if index == 0:
+							resultDictionary['text'] = str(ttext['description'])
+				else:
+					resultDictionary['text'] = 'No Text in the image'
+				if 'labelAnnotations' in __resp:
+					for index, tlabel in enumerate(__resp['labelAnnotations'], start = 0):
+						resultLabelDictionary.append({'labelDescription' : str(tlabel['description']), 'labelPercent' : str(round(tlabel['score'] * 100))})
+					resultDictionary['advertise'] = resultLabelDictionary
+				else:
+					resultDictionary['advertise'] = 'No label in the image'
+				if 'logoAnnotations' in __resp:
+					for index, tlogo in enumerate(__resp['logoAnnotations'], start = 0):
+						resultDictionary['logo'] = tlogo['description']
+						resultDictionary['logoPercent'] = str(round(tlogo['score'] * 100))
+				else:
+					resultDictionary['logo'] = 'No logo in the image'
+					resultDictionary['logoPercent'] = '0'
+				result.append(resultDictionary)
+			context = {
+				'loggedIn': True,
+				'operation' : 'Automatic Annotation',
+				'result' : result,
+			}
+			return render(request, 'detectionresult.html', context)
+		else:
+			context = {
+				'loggedIn': True,
+			}
+			return render(request, 'detectionresult.html', context)
+
+
+def __generate_json(img, feat):
+	request_list = []
+	content_json_obj = {
+		#'content': base64.b64encode(img).decode('UTF-8')
+		'content': img
+    }
+	features = feat
+	feature_json_obj = []
+	for word in features.split(' '):
+		feature, max_results = word.split(':', 1)
+		feature = int(feature)
+		feature_json_obj.append({
+			'type': DETECTION_TYPES[feature],
+			'maxResults': int(max_results),
+        })
+		request_list.append({
+			'features': feature_json_obj,
+			'image': content_json_obj,
+        })
+	response = requests.post(url = googleapikey,
+		data = json.dumps({'requests': request_list}),
+		headers = {'Content-Type': 'application/json'})
+	into = response.text
+	if response.status_code != 200 or response.json().get('error'):
+		resp = None
+	else:
+		for idx, resp in enumerate(response.json()['responses']):
+			pass
+	return resp
+
+DETECTION_TYPES = [
+    'TYPE_UNSPECIFIED',
+    'FACE_DETECTION',
+    'LANDMARK_DETECTION',
+    'LOGO_DETECTION',
+    'LABEL_DETECTION',
+    'TEXT_DETECTION',
+    'SAFE_SEARCH_DETECTION',
+]

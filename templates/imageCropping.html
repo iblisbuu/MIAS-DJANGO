@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+
+
+{% block head_title %} {{ block.super }} | IMAGE CROPPING {% endblock %}
+
+{% block content %}
+<div class="row">
+<div id="cropCarousel" class="carousel slide" data-ride="carousel" style="foreground: black;">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-target="#cropCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#cropCarousel" data-slide-to="1"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    <div class="item active" >
+      <img src="https://storage.googleapis.com/mias-test-static1/static/MIASIMAGECROP/cropimage.png" alt="Cropping" >
+
+    </div>
+
+    <div class="item" >
+      <img src="https://storage.googleapis.com/mias-test-static1/static/MIASIMAGECROP/savecrop.png" alt="SaveImage" >
+
+    </div>
+  </div>
+
+  <!-- Left and right controls -->
+  <a class="left carousel-control"  data-target="#cropCarousel" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="right carousel-control"  data-target="#cropCarousel" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>
+</div>
+<br />
+<br />
+  {% if objects %}
+  <ul class="nav nav-tabs">
+    {% for key,obj in objects.items %}
+    {% if forloop.counter == 1 %}
+    <li class="active">
+      {% else %}
+      <li>
+        {% endif %}
+        <a  href="#bkt{{forloop.counter}}" data-toggle="tab">Customer - {{key}}</a>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="tab-content" style="border: 1px solid #ddd;padding: 10px;">
+      {% for key,blobs in objects.items %}
+      {% if forloop.counter == 1 %}
+      <div id="bkt{{forloop.counter}}" class="tab-pane fade in active">
+        {% else %}
+        <div id="bkt{{forloop.counter}}" class="tab-pane fade">
+          {% endif %}
+          <form name="imageCropForm_{{ forloop.counter }}" action="/imageCrop" method="POST">
+		   {% csrf_token %}
+           <div class="btn-group">
+		    <input name="submit" type="submit" class="btn btn-primary" value="Perform Image Crop" onclick="return submitForm(this.form)"/>
+			<br/>
+			<br/>
+		   </div>
+           <!--<P>-->
+			{% if public_url %}
+            <div class="alert alert-success alert-dismissable">
+             <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+             <strong>Uploaded URL: </strong> {{public_url}}
+            </div>
+            {% endif %}
+            <table id="table" class="table table-hover table-bordered">
+             <thead>
+              <tr>
+                <th class="no-sort" ><input type="checkbox" name="chkAll" id="chkAll" value="all"></th>
+                <th>#</th>
+                <th>File Name</th>
+                <th>Type</th>
+                <th>Created On</th>
+                <!-- <th class="no-sort">Action</th> -->
+              </tr>
+             </thead>
+             <tbody>
+              {% if blobs %}
+              {% for blbs in blobs %}
+              <tr>
+                <th><label><input type="checkbox" name="miasCropImages" value="{{blbs.name}}+{{blbs.public_url}}+{{key}}"></label></th>
+                <th scope="row">{{blbs.index|add:'1'}}</th>
+                <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{blbs.public_url}}'>" href="{{blbs.public_url}}" target="_blank">{{blbs.name}}</a></td>
+                <td>{{blbs.type}}</td>
+                <td>{{blbs.timecreated}}</td>
+                <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+              </tr>
+              {% endfor %}
+              {% else %}
+              <tr>
+                <td>No data available!!</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+              </tr>
+              {% endif %}
+             </tbody>
+            </table>
+			</form>
+           </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>No bucket data available!!</p>
+      {% endif %}
+    <!--</div>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+    <script>
+    $(document).ready(function() {
+      $('a[data-toggle=tooltip]').tooltip();
+      $('.table').DataTable( {
+        "aLengthMenu": [[5, 10, 15,20,25, -1], [5, 10, 15, 20, 25, "All"]],
+        "iDisplayLength": 10,
+        "columnDefs": [ {
+          "targets": 'no-sort',
+          "orderable": false,
+        } ]
+      } );
+      $('input[name="chkAll"]').click(function () {
+        $(this).parents('div:first').find(':checkbox').not(this).prop('checked', this.checked);
+      });
+      $('button[name="btnDelete"]').on('click', function(e) {
+        $('#modalDelete').modal('hide');
+        var favorite = [];
+        var $form = $(this).closest('form');
+        e.preventDefault();
+        $('table [type="checkbox"]').each(function(i, chk) {
+          if (chk.checked) {
+            favorite.push(chk.value);
+          }
+        });
+        if (favorite.length === 0) {
+          $('button[name="btnDelete"]').after('<div class="alert alert-warning alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Select at least one item to delete!!</div>');
+        }
+        else{
+          $(".alert").alert("close");
+          $('#modalDelete').modal('show');
+          $("#modalDelete .modal-body").html("")
+          $("#modalDelete .modal-body").append("Are you sure you want to delete?<br/>"+favorite.join(",<br/> "));
+          $('#modalDelete').one('click', '#delete', function(e) {
+            $form.trigger('submit');
+          });
+        }
+      });
+    });
+	
+	function submitForm(selectedForm) {
+	  if($('input[name="chkAll"]:checked').val()== "all") {
+	   if($("input[type=checkbox]:checked").length > 11) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length == 1) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	  else {
+	   if($("input[type=checkbox]:checked").length == 0) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length > 10) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	}	
+    </script>
+<!--</form>-->
+<br/>
+<br/>
+{% if operation == 'Crop' %}
+{% for selectedImage in selectedImages %}
+<div class="row" style="padding-left: 200px; padding-right: 200px;">
+<div class="col-xs-12">
+<div class="panel panel-default">
+   <div class="panel-heading">
+   <div class="text-center" style="width: 100%;">
+    <canvas id="panel_{{ forloop.counter0 }}"></canvas>
+     <p>
+      <input class="btn btn-primary" type="button" id="cropBttn_{{ forloop.counter0 }}" value="Crop">
+     </p>
+   </div>
+   </div>
+   <div class="panel-body text-center">
+   <div id="croppedImageDiv_{{ forloop.counter0 }}" class="text-center">
+    <!--<h4 style="width: 100%;">Cropped Image: {{ selectedImage.imageName }}</h4>-->
+	<!--Cropped Image: {{ selectedImage.imageName }}-->
+	<!--<input id="imageDataHidden_{{ forloop.counter0 }}" type="hidden" name="imageData_{{ forloop.counter0 }}" value="" />-->
+    <img crossOrigin="Anonymous" src="" id="croppedImage_{{ forloop.counter0 }}">
+   </div>
+   </div>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="none"
+		var imageCropper = {
+			//document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="none";
+			
+			count: 0,
+			
+            ctx: null,
+
+            image: null,
+
+            click: false,
+
+            downPointX: 0,
+
+            downPointY: 0,
+
+            lastPointX: 0,
+
+            lastPointY: 0,
+
+            hoverBoxSize: 5,
+
+            cropedFile: null,
+
+            resize: false,
+
+            canvasBackgroundColor: "#FFFFFF",
+
+            init: function() {
+                this.ctx = document.getElementById("panel_{{ forloop.counter0 }}").getContext("2d");
+                //var imageUploader = document.getElementById('imageLoader');
+                this.initCanvas();
+                document.getElementById("cropBttn_{{ forloop.counter0 }}").onclick = this.cropImage.bind(this);
+            },
+
+            initCanvas: function(image) {
+                this.image = new Image();
+                //this.image.setAttribute("crossOrigin", "Anonymous"); //optional,  it is needed only if your image is not avalible on same domain.
+                this.image.src = "data:image/png;base64,{{ selectedImage.imageData }}";
+				//this.image.src = "https://www.w3schools.com/css/trolltunga.jpg";
+                this.image.onload = function() {
+                    this.ctx.canvas.width = this.image.width;
+					//this.ctx.canvas.width = "100%";
+                    this.ctx.canvas.height = this.image.height;
+                    this.reDrawCanvas();
+                    this.initEventsOnCanvas();
+                }.bind(this);
+            },
+
+            /**
+             * Initlize mousedown and mouseup event, third brother of this type of event, onmousemove, will be set little letter.
+             *
+             */
+            initEventsOnCanvas: function() {
+                this.ctx.canvas.onmousedown = this.onMouseDown.bind(this);
+                this.ctx.canvas.onmouseup = this.onMouseUp.bind(this);
+            },
+
+            /**
+             * This event is bit tricky!
+             * Normal task of this method is to pin point the starting point, from where we will  strat making the selectin box.
+             * However, it work diffrently if user is hover over the resize boxes
+             *
+             */
+            onMouseDown: function(e) {
+                var loc = this.windowToCanvas(e.clientX, e.clientY);
+                e.preventDefault();
+                this.click = true;
+                if (!this.resize) {
+                    this.ctx.canvas.onmousemove = this.onMouseMove.bind(this);
+                    this.downPointX = loc.x;
+                    this.downPointY = loc.y;
+                    this.lastPointX = loc.x;
+                    this.lastPointY = loc.y;
+                }
+            },
+
+            /**
+             * register normal movement, with click but no re-size.
+             */
+            onMouseMove: function(e) {
+                e.preventDefault();
+                if (this.click) {
+                    var loc = this.windowToCanvas(e.clientX, e.clientY);
+                    this.lastPointX = loc.x;
+                    this.lastPointY = loc.y;
+                    this.reDrawCanvas();
+                }
+            },
+
+            onMouseUp: function(e) {
+                e.preventDefault();
+                this.ctx.canvas.onmousemove = this.onImageResize.bind(this);
+                this.click = false;
+            },
+
+            reDrawCanvas: function() {
+                this.clearCanvas();
+                this.drawImage();
+                this.drawSelRect();
+                this.drawResizerBox();
+            },
+
+            clearCanvas: function() {
+                this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+                this.ctx.fillStyle = this.canvasBackgroundColor;
+                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+            },
+
+            /**
+             * Draw image on canvas.
+             */
+            drawImage: function() {
+                this.ctx.drawImage(this.image, 0, 0);
+            },
+
+            /**
+             * Draw selection box on canvas
+             */
+            drawSelRect: function() {
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(this.downPointX, this.downPointY, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY));
+            },
+
+            /**
+             * This method take care of resizeing the selection box.
+             * It does so by looking on (click == true and hover on resize box == true)
+             * if both are true, it adjust the resize.
+             *
+             * @param  {[type]} e [description]
+             * @return {[type]}   [description]
+             */
+            onImageResize: function(e) {
+                var centerPointX = (this.lastPointX + this.downPointX) / 2;
+                var centerPointY = (this.lastPointY + this.downPointY) / 2;
+                var loc = this.windowToCanvas(e.clientX, e.clientY);
+                this.ctx.fillStyle = '#FF0000';
+                this.ctx.lineWidth = 1;
+                if (this.isResizeBoxHover(loc, centerPointX, this.downPointY)) {
+                    if (this.click) {
+                        this.downPointY = loc.y;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, this.lastPointX, centerPointY)) {
+                    if (this.click) {
+                        this.lastPointX = loc.x;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, centerPointX, this.lastPointY)) {
+                    if (this.click) {
+                        this.lastPointY = loc.y;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, this.downPointX, centerPointY)) {
+                    if (this.click) {
+                        this.downPointX = loc.x;
+                        this.reDrawCanvas();
+                    }
+                } else {
+                    this.resize = false;
+                    this.reDrawCanvas();
+                }
+            },
+
+            /**
+             * Detect the mousehover on given axis
+             */
+            isResizeBoxHover: function(loc, xPoint, yPoint) {
+                var hoverMargin = 3;
+                if (loc.x > (xPoint - this.hoverBoxSize - hoverMargin) && loc.x < (xPoint + this.hoverBoxSize + hoverMargin) && loc.y > (yPoint - this.hoverBoxSize - hoverMargin) && loc.y < (yPoint + 5 + hoverMargin)) {
+                    this.ctx.fillRect(xPoint - this.hoverBoxSize, yPoint - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                    this.resize = true;
+                    return true;
+                }
+                return false;
+            },
+
+            /**
+             * Draw 4 resize box of 10 x 10
+             * @return {[type]} [description]
+             */
+            drawResizerBox: function() {
+                var centerPointX = (this.lastPointX + this.downPointX) / 2;
+                var centerPointY = (this.lastPointY + this.downPointY) / 2;
+                this.ctx.fillStyle = 'black';
+                this.ctx.lineWidth = 1;
+                this.ctx.fillRect(centerPointX - this.hoverBoxSize, this.downPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(this.lastPointX - this.hoverBoxSize, centerPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(centerPointX - this.hoverBoxSize, this.lastPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(this.downPointX - this.hoverBoxSize, centerPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+            },
+
+            /**
+             * Translate to HTML coardinates to Canvas coardinates.
+             */
+            windowToCanvas: function(x, y) {
+                var canvas = this.ctx.canvas,
+                    bbox = canvas.getBoundingClientRect();
+                return {
+                    x: x - bbox.left * (canvas.width / bbox.width),
+                    y: y - bbox.top * (canvas.height / bbox.height)
+                };
+            },
+
+            /**
+             * Get the canavs, remove cutout, create image elemnet on UI.
+             * @return {[type]}
+             */
+            cropImage: function() {
+				document.getElementById("totalCount").setAttribute("value", "{{ count }}");
+				var hiddenFieldImageName = document.createElement('input');
+				hiddenFieldImageName.setAttribute("type", "hidden");
+				hiddenFieldImageName.setAttribute("name", "imageNameHidden_{{ forloop.counter0 }}");
+				var hiddenField = document.createElement('input');
+				hiddenField.setAttribute("type", "hidden");
+				hiddenField.setAttribute("name", "imageDataHidden_{{ forloop.counter0 }}");
+                var tempCtx = document.createElement('canvas').getContext('2d');
+                tempCtx.canvas.width = this.lastPointX - this.downPointX;
+                tempCtx.canvas.height = this.lastPointY - this.downPointY;
+				tempCtx.drawImage(this.image, this.downPointX, this.downPointY, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY), 0, 0, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY));
+				//tempCtx.drawImage(this.image, this.downPointX, this.downPointY);
+                var imageData = tempCtx.canvas.toDataURL();	
+				var croppedImageElement = document.getElementById("croppedImage_{{ forloop.counter0 }}");
+				//document.getElementById("croppedImage_{{ forloop.counter0 }}").src = imageData;
+				//croppedImageElement.onload = function() {
+				 //alert(croppedImageElement.width + ' ' + croppedImageElement.height);
+				 //alert("downPointX: " + this.downPointX);
+				 //alert("downPointY: " + this.downPointY);
+				 //alert("lastPointX: " + this.lastPointX);
+				 //alert("lastPointY: " + this.lastPointY);
+				//}.bind(this);
+				croppedImageElement.src = imageData; 
+				//alert('Height of cropped image: ' + croppedImageElement.height + ' and width of cropped image: ' + croppedImageElement.width)
+				document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="initial";
+				if(document.getElementById("saveBtnDiv").style.display != "initial") {
+				 document.getElementById("saveBtnDiv").style.display = "initial";
+				}		
+				hiddenField.setAttribute("value", imageData);
+				hiddenFieldImageName.setAttribute("value", "{{ selectedImage.imageName }}");
+				var divElement = document.getElementById("saveBtnDiv").childNodes;
+				var divFormElement = divElement[1].childNodes;
+				divFormElement[1].appendChild(hiddenField);
+				divFormElement[1].appendChild(hiddenFieldImageName);
+				this.count += 1;
+            }
+        }
+
+        imageCropper.init();
+</script>
+{% endfor %}
+<div id="saveBtnDiv" class="row" style="display: none;">
+ <div class="col-xs-12 text-center">
+  <form action="/imageCrop" method="post">
+   {% csrf_token %}
+   <input id="totalCount" type="hidden" name="totalCount" value=""/>
+   <input id="selectedBucket" type="hidden" name="selectedBucket" value="{{ selectedBucket }}" />
+   <input type="submit" name="submit" class="btn btn-primary" value="Save"/>
+  </form>
+ </div> 
+</div>
+{% elif operation == 'Save'%}
+ <script>
+  alert("Cropped images are saved");
+ </script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block head_title %} {{ block.super }} | SEGMENTATION {% endblock %}
+
+{% block content %}
+<div class="row">
+ <div id="segmentationCarousel" class="carousel slide" data-ride="carousel" style="foreground: black;">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+   <li data-target="#segmentationCarousel" data-slide-to="0" class="active"></li>
+   <li data-target="#segmentationCarousel" data-slide-to="1"></li>
+   <li data-target="#segmentationCarousel" data-slide-to="2"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+   <div class="item active" >
+    <img src="https://storage.googleapis.com/mias-test-static1/static/MIASSEGMENTATION/segment.png" alt="Segment" >
+   </div>
+   <div class="item" >
+    <img src="https://storage.googleapis.com/mias-test-static1/static/MIASSEGMENTATION/class.png" alt="Segment" >
+   </div>
+  </div>
+
+  <!-- Left and right controls -->
+  <a class="left carousel-control"  data-target="#segmentationCarousel" role="button" data-slide="prev">
+   <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+   <span class="sr-only">Previous</span>
+  </a>
+  <a class="right carousel-control"  data-target="#segmentationCarousel" role="button" data-slide="next">
+   <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+   <span class="sr-only">Next</span>
+  </a>
+ </div>
+</div>
+<br />
+<br />
+
+<!--<p>-->
+{% if objects %}
+ <ul class="nav nav-tabs">
+  {% for key,obj in objects.items %}
+   {% if forloop.counter == 1 %}
+    <li class="active">
+   {% else %}
+    <li>
+   {% endif %}
+     <a  href="#bkt{{forloop.counter}}" data-toggle="tab">Customer - {{key}}</a>
+    </li>
+  {% endfor %}
+ </ul>
+ <div class="tab-content" style="border: 1px solid #ddd;padding: 10px;border-top: none;">
+  {% for key,blobs in objects.items %}
+   {% if forloop.counter == 1 %}
+    <div id="bkt{{forloop.counter}}" class="tab-pane fade in active">
+   {% else %}
+    <div id="bkt{{forloop.counter}}" class="tab-pane fade">
+   {% endif %}
+     <form name="segmentationForm_{{ forloop.counter }}" action="/segmentation" method="POST">
+      {% csrf_token %}
+      <div class="btn-group">
+	   <!-- Submit buttons for performing the type of segmentation -->
+       <input name="submit" type="submit" class="btn btn-primary" value="AD Segment" onclick="return submitForm(this.form)"/>
+       <input name="submit" type="submit" class="btn btn-primary" value="Contour Segment" onclick="return submitForm(this.form)"/>
+       <input name="submit" type="submit" class="btn btn-primary" value="HoughLines Segment" onclick="return submitForm(this.form)"/>
+      </div>
+	  &nbsp;&nbsp;&nbsp;
+	  <label>Sensitivity: </label>
+      <label class="radio-inline"><input type="radio" name="Sensitivity" value="Low" checked>Low</label>
+      <label class="radio-inline"><input type="radio" name="Sensitivity" value="Medium">Medium</label>
+      <label class="radio-inline"><input type="radio" name="Sensitivity" value="High">High</label>
+	  <br/>
+      <!--<br/>
+      <div class="row">
+	   <div class="col-xs-4">-->
+	    <!-- Radio buttons for selecting the level of sensitivity for segmentation -->
+		<!--<label>Sensitivity: </label>
+        <label class="radio-inline"><input type="radio" name="Sensitivity" value="Low" checked>Low</label>
+        <label class="radio-inline"><input type="radio" name="Sensitivity" value="Medium">Medium</label>
+        <label class="radio-inline"><input type="radio" name="Sensitivity" value="High">High</label>-->
+	   <!--</div>
+	   <div class="col-xs-8">-->
+	    <!-- Range element for selecting sensitivity value for segmentation -->
+        <!--<input type="range" name="sensitivity_points" min="0" max="100" list="points" oninput="document.getElementById('sPoint').value = this.value">
+		<datalist id="points">
+         <option value="0">
+         <option value="10">
+         <option value="20">
+         <option value="30">
+         <option value="40">
+         <option value="50">
+         <option value="60">
+         <option value="70">
+         <option value="80">
+         <option value="90">
+         <option value="100">
+        </datalist>-->
+	   <!--</div>
+	   <input type="hidden" id="sPoint" name="sPoint" value="50">
+      </div>-->
+	  <br/>
+      <!--<P>-->
+      {% if public_url%}
+       <div class="alert alert-success alert-dismissable">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+        <strong>Uploaded URL: </strong> {{public_url}}
+       </div>
+      {% endif %}
+	  <!-- Data table for displaying images in the selected bucket -->
+      <table id="table" class="table table-hover table-bordered">
+	   <thead>
+        <tr>
+         <th class="no-sort" ><input type="checkbox" name="chkAll" id="chkAll" value="all"></th>
+         <th>#</th>
+         <th>File Name</th>
+         <th>Type</th>
+         <th>Created On</th>
+         <!-- <th class="no-sort">Action</th> -->
+        </tr>
+       </thead>
+       <tbody>
+	    {% if blobs %}
+         {% for blbs in blobs %}
+          <tr>
+           <td><label><input type="checkbox" name="miasimages" value="{{blbs.public_url}}+{{blbs.name}}+{{key}}"></label></td>
+           <td scope="row">{{blbs.index|add:'1'}}</td>
+           <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{blbs.public_url}}'>" href="{{blbs.public_url}}" target="_blank">{{ blbs.filteredName }}</a></td>
+           <td>{{blbs.type}}</td>
+           <td>{{blbs.timecreated}}</td>
+           <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+          </tr>
+         {%endfor%}
+        {% else %}
+         <tr>
+          <td>No data available!!</td>
+	      <td></td>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+         </tr>
+        {% endif %}
+       </tbody>
+      </table>   
+     </form>
+    </div>
+   {% endfor %}
+    </div>
+  {% else %}
+   <p>No bucket data available!!</p>
+  {% endif %}
+ </div>
+<!-- Scripts for jquery and datatables CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+<script>
+    var myApp;
+    myApp = myApp || (function () {
+        var pleaseWaitDiv = $('<div class="modal" id="myModal" data-backdrop="static" data-keyboard="false"><div class="modal-dialog" style="margin: 10% auto;"><div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%">Loading...</div></div></div></div>');
+        return {
+            showPleaseWait: function() {
+                pleaseWaitDiv.modal();
+            },
+            hidePleaseWait: function () {
+                pleaseWaitDiv.modal('hide');
+            },
+
+        };
+    })();
+    $(document).ready(function() {
+      myApp.hidePleaseWait();
+      $('a[data-toggle=tooltip]').tooltip();
+      $('.table').DataTable( {
+        "aLengthMenu": [[5, 10, 15,20,25, -1], [5, 10, 15, 20, 25, "All"]],
+        //"iDisplayLength": 10,
+        "pageLength" : 10,
+        "columnDefs": [ {
+          "targets": 'no-sort',
+          "orderable": false,
+        } ]
+      } );
+      $('input[name="chkAll"]').click(function () {
+        $(this).parents('div:first').find(':checkbox').not(this).prop('checked', this.checked);
+      });
+
+      $("form").submit(function(event){
+        $('.modal').modal('hide');
+        myApp.showPleaseWait();
+      });
+    });
+	
+	function submitForm(selectedForm) {
+	  if($('input[name="chkAll"]:checked').val()== "all") {
+	   if($("input[type=checkbox]:checked").length > 11) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length == 1) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	  else {
+	   if($("input[type=checkbox]:checked").length == 0) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length > 10) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	}
+</script>
+
+{% endblock %}

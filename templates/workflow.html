@@ -1,0 +1,1105 @@
+{% extends "base.html" %}
+
+
+{% block head_title %} {{ block.super }} | Work Flow {% endblock %}
+
+{% block content %}
+<div id="workflowJumbotron" style="display: none;">
+<div class="jumbotron">
+    <div class="container">
+    <h1>RUZIVO Workflow</h1>
+    <p class="lead">RUZIVO Workflow demonstrates the sequence of processes in advertisement and commercial media analytics including selection, segmentation, classification and QA.</p>
+    <!--<p><a href="" class="btn btn-primary btn-large">START &raquo;</a></p>-->
+	<form action="/workflow" method="post">
+	{% csrf_token %}
+	<p><input name="submit" type="submit" class="btn btn-primary" value="Start Workflow"/></p>
+	</form>
+	</div>
+</div>
+</div>
+{% if operationStep == "Workflow" %}
+<div class="row">
+    <div class="col-md-3">
+        <h2>Step 1: Selection</h2>
+        <p>
+            Select advertisement image data set for your customer. All images will be processed
+            together.
+        </p>
+        <!--<p><a class="btn btn-default" href="">Next Step &raquo;</a></p>-->
+    </div>
+    <div class="col-md-3">
+        <h2>Step 2: Segmentation</h2>
+        <p>All images will be segmented by advertisement. Then, all advertisement are stored at segment database</p>
+        <!--<p><a class="btn btn-default" href="">Next Step &raquo;</a></p>-->
+    </div>
+    <div class="col-md-3">
+        <h2>Step 3: Classification</h2>
+        <p>All image segments are classified into either AD or Non-AD segments, which are stored separtely.</p>
+        <!--<p><a class="btn btn-default" href="">Next Step &raquo;</a></p>-->
+    </div>
+	<div class="col-md-3">
+        <h2>Step 4: QA</h2>
+        <p>For Non-AD segmented images, you can manually crop AD segment. Then, storage at AD database.</p>
+        <!--<p><a class="btn btn-default" href="">Finish &raquo;</a></p>-->
+    </div>
+</div>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "inline";
+</script>
+{% elif operationStep == "Selection" %}
+    <div class="progress">
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 1
+         </div>
+    </div>
+<div class="row text-center">
+ <div class="col-xs-12" style="border: 1px solid #a1a1a1; background: #dddddd; border-radius: 25px;">
+	<h2>Step 1: Selection</h2>
+    <p>
+	 Select advertisement image data set for your customer. All images will be processed
+     together.
+    </p>
+	<form action="/workflow" method="post">
+	 {% csrf_token %}
+     {% for bucket in buckets %}
+	  <div class="radio">
+	   <label><input type="radio" name="bucket" value="{{ bucket.name }}"/>{{ bucket.name }}</label>	   
+	  </div>
+	 {% endfor %}
+	 <p><input name="submit" type="submit" class="btn btn-primary" value="Step 2: Segmentation"/></p>
+	</form>
+ </div>
+</div>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+</script>
+{% elif operationStep == "Classify" %}
+    <div class="progress">
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 1
+         </div>
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 2
+         </div>
+    </div>
+<form action="/workflow" method="post">
+ {% csrf_token %}
+<div class="row text-center">
+ <div class="col-lg-3"></div>
+ <div class="col-lg-6" style="border: 1px solid #a1a1a1; padding: 10px 40px; background: #dddddd; border-radius: 25px;">
+  <h2>Step 2: Segmentation</h2>
+   <p>
+	All images will be segmented by advertisement. Then, all advertisement are stored at
+	segment database.
+   </p>
+  <div class="form-group">
+   <label for="miasimages">Available Images</label>
+   <select id="miasimages" name="miasimages" class="form-control" id="miasimages" multiple style="text-align: center;">
+    {% for image in miasimages %}
+	 {% if forloop.counter0 == 0 %}
+	  <option value="{{ image.url }}+{{ image.name }}+{{ image.bucket }}" selected>{{ image.name }}</option>
+	 {% else %}
+	  <option value="{{ image.url }}+{{ image.name }}+{{ image.bucket }}">{{ image.name }}</option>
+	 {% endif %}
+	{% endfor %}
+   </select>  
+   <br/>
+   <div class="row">
+	<div class="col-xs-12">
+	 <!-- Radio buttons for selecting the level of sensitivity for segmentation -->
+	 <label>Sensitivity: </label>
+	 <br/>
+     <label class="radio-inline"><input type="radio" name="Sensitivity" value="Low" checked>Low</label>
+     <label class="radio-inline"><input type="radio" name="Sensitivity" value="Medium">Medium</label>
+     <label class="radio-inline"><input type="radio" name="Sensitivity" value="High">High</label>
+	</div>
+	<!--<br/>
+	<br/>
+	<div class="col-xs-12">
+	 <div style="background-color: #000000; border-style: solid; border-width: thick;">-->
+	 <!-- Range element for selecting sensitivity value for segmentation -->
+     <!--<input type="range" style="color: #FFFFFF;" name="sensitivity_points" min="0" max="100" list="points" oninput="document.getElementById('sPoint').value = this.value">
+     <datalist id="points">
+      <option value="0">
+      <option value="10">
+      <option value="20">
+      <option value="30">
+      <option value="40">
+      <option value="50">
+      <option value="60">
+      <option value="70">
+      <option value="80">
+      <option value="90">
+      <option value="100">
+     </datalist>
+	 </div>
+	</div>
+	<input type="hidden" id="sPoint" name="sPoint" value="50">-->
+   </div>
+   <br/>
+   <label for="miasCategory">Category</label>
+   <select name="category" class="form-control" id="miasCategory" style="text-align: center;">
+     <option value="General" selected>General</option>
+     <option value="Automotive">Automotive</option>
+     <option value="Real Estate" disabled>Real Estate</option>
+   </select>
+   <br/>
+   <input name="submit" type="submit" class="btn btn-primary" value="Step 3: Classification" onclick="return submitForm(this.form)"/>
+  </div>
+ </div>
+ <div class="col-lg-3"></div>
+</form>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+    var myApp;
+    myApp = myApp || (function () {
+        var pleaseWaitDiv = $('<div class="modal" id="myModal" data-backdrop="static" data-keyboard="false"><div class="modal-dialog" style="margin: 10% auto;"><div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%">Loading...</div></div></div></div>');
+        return {
+            showPleaseWait: function() {
+                pleaseWaitDiv.modal();
+            },
+            hidePleaseWait: function () {
+                pleaseWaitDiv.modal('hide');
+            },
+
+        };
+    })();
+    $(document).ready(function() {
+      myApp.hidePleaseWait();
+
+      $("form").submit(function(event){
+        $('.modal').modal('hide');
+        myApp.showPleaseWait();
+      });
+    });
+	
+	function submitForm(selectedForm) {
+	  if($("#miasimages").val().length > 10) {
+	     alert("You cannot select more than 10 images");
+	     return false;
+	  }
+	  else {
+	   return true;
+	  }
+	}
+</script>
+{% elif operationStep == "ClassifiedImages" %}
+    <div class="progress">
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 1
+         </div>
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 2
+         </div>
+         <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+              aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+            Step 3
+         </div>
+    </div>
+ <div class="row text-center">
+  <div class="col-lg-3"></div>
+  <div class="col-lg-6" style="border: 1px solid #a1a1a1; padding: 10px 40px; background: #dddddd; border-radius: 25px;">
+   <h2>Step 3: Classification</h2>
+   <p>
+	For Non-AD segmented images, you can manually crop AD segment. Then, storage at AD 
+	database.
+   </p>
+  </div>
+  <div class="col-lg-3"></div>
+ </div>
+ <br/>
+ <ul class="nav nav-tabs">
+ {% for adNonAdSegmentImage in totalSegmentedImages %}
+  {% if forloop.counter0 == 0 %}
+   {% if category == 'General' %}
+    <li class="active">
+   {% else %}
+    <li>
+   {% endif %}
+  {% else %}
+   {% if category == 'General' %}
+    <li>
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'autoad' %}
+	 <li class="active">
+	{% else %}
+	 <li>
+	{% endif %}
+   {% endif %}
+  {% endif %}
+	{% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <a href="#{{ bucket }}-segment-ad" data-toggle="tab">{{ bucket }}-segment-ad</a>
+	{% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+	 <a href="#{{ bucket }}-segment-nonad" data-toggle="tab">{{ bucket }}-segment-nonad</a>
+	{% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+	 <a href="#{{ bucket }}-segment-autoad" data-toggle="tab">{{ bucket }}-segment-autoad</a>
+	{% else %}
+	 <a href="#{{ bucket }}-segment-autononad" data-toggle="tab">{{ bucket }}-segment-autononad</a>
+	{% endif %}
+   </li>
+  {% endfor %}
+ </ul>
+ <div class="tab-content" style="border: 1px solid #ddd;padding: 10px;">
+ {% for adNonAdSegmentImage in totalSegmentedImages %}
+  {% if forloop.counter0 == 0 %}
+   {% if category == 'General' %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade in active">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade in active">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-atuononad" class="tab-pane fade in active">
+    {% endif %}
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% endif %}
+  {% else %}
+   {% if category == 'General' %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% endif %}
+  {% endif %}   
+  <form id="imagesForm_{{forloop.counter0}}" action="/workflow" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="selectedCategory" value="{{ category }}"/>
+  <input type="hidden" name="selectedBucket" value="{{ bucket }}" />
+   <div class="btn-group">
+    <input name="submit" type="submit" class="btn btn-primary" value="Step 4: QA"/>
+	<input name="submit" type="submit" class="btn btn-primary" value="Automatic Annotation"/>
+	<input name="submit" type="submit" class="btn btn-primary" value="Move Segments"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="List Segments"/>
+	<input name="submit" type="submit" class="btn btn-primary" value="Delete"/>
+	<a href="/workflow" class="btn btn-primary">Finish Workflow</a>
+   </div>
+   <br/>
+   <br/>
+   <table id="table" class="table table-hover table-bordered">
+    <thead>
+     <tr>
+      <th class="no-sort" ><input type="checkbox" name="chkAll" id="chkAll" value="all"></th>
+      <th>#</th>
+      <th>File Name</th>
+     </tr>
+    </thead>
+    <tbody>
+	 {% if adNonAdSegmentImage.segmentType == 'ad' %}
+	  {% if adNonAdSegmentImage.adSegmentedImages %}
+	   {% for adSegmentImage in adNonAdSegmentImage.adSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ adSegmentImage.image.name }}+{{ adSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ adSegmentImage.image.public_url }}'>" href="{{ adSegmentImage.image.public_url }}" target="_blank">{{ adSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+	    <td></td>
+		<td>0</td>
+        <td>No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+	  {% if adNonAdSegmentImage.nonAdSegmentedImages %}
+	   {% for nonAdSegmentImage in adNonAdSegmentImage.nonAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ nonAdSegmentImage.image.name }}+{{ nonAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ nonAdSegmentImage.image.public_url }}'>" href="{{ nonAdSegmentImage.image.public_url }}" target="_blank">{{ nonAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td></td>
+		<td>0</td>
+        <td>No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+	  {% if adNonAdSegmentImage.autoAdSegmentedImages %}
+	   {% for autoAdSegmentImage in adNonAdSegmentImage.autoAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ autoAdSegmentImage.image.name }}+{{ autoAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ autoAdSegmentImage.image.public_url }}'>" href="{{ autoAdSegmentImage.image.public_url }}" target="_blank">{{ autoAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td></td>
+		<td>0</td>
+        <td>No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% else %}
+	  {% if adNonAdSegmentImage.autoNonAdSegmentedImages %}
+	   {% for autoNonAdSegmentImage in adNonAdSegmentImage.autoNonAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ autoNonAdSegmentImage.image.name }}+{{ autoNonAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ autoNonAdSegmentImage.image.public_url }}'>" href="{{ autoNonAdSegmentImage.image.public_url }}" target="_blank">{{ autoNonAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <<td></td>
+		<td>0</td>
+        <td>No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% endif %}
+	</tbody>
+   </table>
+  </form>
+ </div>
+{% endfor %}
+</div>
+<script>
+    /*var myApp;
+    myApp = myApp || (function () {
+        var pleaseWaitDiv = $('<div class="modal" id="myModal" data-backdrop="static" data-keyboard="false"><div class="modal-dialog" style="margin: 10% auto;"><div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%">Loading...</div></div></div></div>');
+        return {
+            showPleaseWait: function() {
+                pleaseWaitDiv.modal();
+            },
+            hidePleaseWait: function () {
+                pleaseWaitDiv.modal('hide');
+            },
+
+        };
+    })();*/
+    $(document).ready(function() {
+      //myApp.hidePleaseWait();
+      $('a[data-toggle=tooltip]').tooltip();
+      $('.table').DataTable( {
+        "aLengthMenu": [[5, 10, 15,20,25, -1], [5, 10, 15, 20, 25, "All"]],
+        //"iDisplayLength": 10,
+        "pageLength" : 10,
+        "columnDefs": [ {
+          "targets": 'no-sort',
+          "orderable": false,
+        } ]
+      } );
+      $('input[name="chkAll"]').click(function () {
+        $(this).parents('div:first').find(':checkbox').not(this).prop('checked', this.checked);
+      });
+
+      //$("form").submit(function(event){
+        //$('.modal').modal('hide');
+        //myApp.showPleaseWait();
+      //});
+	  var btnClicked;
+	  $("input[type=submit]").click(function() {
+	   btnClicked = $(this).attr("value");
+	  });
+	  $("#imagesForm_0").on("submit", function(e) {
+	   if(btnClicked != "List Segments") {
+	    if($("input[type=checkbox]:checked").length == 0) {
+	     e.preventDefault();
+	     alert("Please select atleast one image");
+	     return false;
+	    }
+		else if($("input[type=checkbox]:checked").length > 10) {
+		 e.preventDefault();
+	     alert("You cannot select more than 10 images");
+	     return false;
+		}
+	    else {
+		 return true;
+	    }
+	   }
+	  });
+	  $("#imagesForm_1").on("submit", function(e) {
+	   if(btnClicked != "List Segments") {
+	    if($("input[type=checkbox]:checked").length == 0) {
+	     e.preventDefault();
+	     alert("Please select atleast one image");
+	     return false;
+	    }
+		else if($("input[type=checkbox]:checked").length > 10) {
+		 e.preventDefault();
+	     alert("You cannot select more than 10 images");
+	     return false;
+		}
+	    else {
+		 return true;
+	    }
+	   }
+	  });
+	  $("#imagesForm_2").on("submit", function(e) {
+	   if(btnClicked != "List Segments") {
+	    if($("input[type=checkbox]:checked").length == 0) {
+	     e.preventDefault();
+	     alert("Please select atleast one image");
+	     return false;
+	    }
+		else if($("input[type=checkbox]:checked").length > 10) {
+		 e.preventDefault();
+	     alert("You cannot select more than 10 images");
+	     return false;
+		}
+	    else {
+		 return true;
+	    }
+	   }
+	  });
+	  $("#imagesForm_3").on("submit", function(e) {
+	   if(btnClicked != "List Segments") {
+	    if($("input[type=checkbox]:checked").length == 0) {
+	     e.preventDefault();
+	     alert("Please select atleast one image");
+	     return false;
+	    }
+		else if($("input[type=checkbox]:checked").length > 10) {
+		 e.preventDefault();
+	     alert("You cannot select more than 10 images");
+	     return false;
+		}
+	    else {
+		 return true;
+	    }
+	   }
+	  });
+    });
+</script>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+<!--
+{% if threadCount != '3' %}
+ <script>
+  alert("Another condition checking");
+  function updateDataTable() {
+   var xhttp = new XMLHttpRequest();
+   xhttp.open("POST", '/workflow', true);
+   xhttp.setRequestHeader('X-CSRFToken', "{{ csrf_token }}");
+   xhttp.send("updateDataTable");
+  }
+  updateDataTable();
+ </script>
+{% endif %}-->
+{% elif operationStep == "CropImage" %}
+ <div class="progress">
+  <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+   aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+   Step 1
+  </div>
+  <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+   aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+   Step 2
+  </div>
+  <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+   aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+   Step 3
+  </div>
+  <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar"
+   aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:25%">
+   Step 4
+  </div>
+  </div>
+ <div class="row text-center">
+  <div class="col-lg-3"></div>
+  <div class="col-lg-6" style="border: 1px solid #a1a1a1; padding: 10px 40px; background: #dddddd; border-radius: 25px;">
+   <h2>Step 4: QA</h2>
+   <p>
+	For Non-AD segmented images, you can manually crop AD segment. Then, storage at AD 
+	database.
+   </p>
+  </div>
+  <div class="col-lg-3"></div>
+ </div>
+ <br/>
+ <br/>
+{% for individualNonAdImage in totalNonAdImages %}
+<div class="row">
+<div class="col-xs-12">
+ <div class="panel panel-default">
+  <div class="panel-heading">
+   <div class="text-center">
+   <!--<div class="col-xs-12 col-md-12 col-lg-8  text-center">-->
+    <canvas id="panel_{{ forloop.counter0 }}"></canvas>
+     <p>
+      <input class="btn btn-primary" type="button" id="cropBttn_{{ forloop.counter0 }}" value="Crop" />
+     </p>
+   </div>
+  </div>
+ <div class="panel-body text-center">
+  <div id="croppedImageDiv_{{ forloop.counter0 }}" class="text-center">
+   <img crossOrigin="Anonymous" src="" id="croppedImage_{{ forloop.counter0 }}"/>
+  </div>
+ </div>
+</div>
+</div>
+</div>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+</script>
+<script type="text/javascript">
+document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="none"
+		var imageCropper = {
+			//document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="none";
+			
+			count: 0,
+			
+            ctx: null,
+
+            image: null,
+
+            click: false,
+
+            downPointX: 0,
+
+            downPointY: 0,
+
+            lastPointX: 0,
+
+            lastPointY: 0,
+
+            hoverBoxSize: 5,
+
+            cropedFile: null,
+
+            resize: false,
+
+            canvasBackgroundColor: "#FFFFFF",
+
+            init: function() {
+                this.ctx = document.getElementById("panel_{{ forloop.counter0 }}").getContext("2d");
+                var imageUploader = document.getElementById('imageLoader');
+                this.initCanvas();
+                document.getElementById("cropBttn_{{ forloop.counter0 }}").onclick = this.cropImage.bind(this);
+            },
+
+            initCanvas: function(image) {
+                this.image = new Image();
+                //this.image.setAttribute("crossOrigin", "Anonymous"); //optional,  it is needed only if your image is not avalible on same domain.
+                this.image.src = "data:image/png;base64,{{ individualNonAdImage.imageData }}";
+				//this.image.src = "https://www.w3schools.com/css/trolltunga.jpg";
+                this.image.onload = function() {
+                    this.ctx.canvas.width = this.image.width;
+                    this.ctx.canvas.height = this.image.height;
+                    this.reDrawCanvas();
+                    this.initEventsOnCanvas();
+                }.bind(this);
+				//this.image.src = "data:image/png;base64,{{ individualNonAdImage.imageData }}";
+            },
+
+            /**
+             * Initlize mousedown and mouseup event, third brother of this type of event, onmousemove, will be set little letter.
+             *
+             */
+            initEventsOnCanvas: function() {
+                this.ctx.canvas.onmousedown = this.onMouseDown.bind(this);
+                this.ctx.canvas.onmouseup = this.onMouseUp.bind(this);
+            },
+
+            /**
+             * This event is bit tricky!
+             * Normal task of this method is to pin point the starting point, from where we will  strat making the selectin box.
+             * However, it work diffrently if user is hover over the resize boxes
+             *
+             */
+            onMouseDown: function(e) {
+                var loc = this.windowToCanvas(e.clientX, e.clientY);
+                e.preventDefault();
+                this.click = true;
+                if (!this.resize) {
+                    this.ctx.canvas.onmousemove = this.onMouseMove.bind(this);
+                    this.downPointX = loc.x;
+                    this.downPointY = loc.y;
+                    this.lastPointX = loc.x;
+                    this.lastPointY = loc.y;
+                }
+            },
+
+            /**
+             * register normal movement, with click but no re-size.
+             */
+            onMouseMove: function(e) {
+                e.preventDefault();
+                if (this.click) {
+                    var loc = this.windowToCanvas(e.clientX, e.clientY);
+                    this.lastPointX = loc.x;
+                    this.lastPointY = loc.y;
+                    this.reDrawCanvas();
+                }
+            },
+
+            onMouseUp: function(e) {
+                e.preventDefault();
+                this.ctx.canvas.onmousemove = this.onImageResize.bind(this);
+                this.click = false;
+            },
+
+            reDrawCanvas: function() {
+                this.clearCanvas();
+                this.drawImage();
+                this.drawSelRect();
+                this.drawResizerBox();
+            },
+
+            clearCanvas: function() {
+                this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+                this.ctx.fillStyle = this.canvasBackgroundColor;
+                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+            },
+
+            /**
+             * Draw image on canvas.
+             */
+            drawImage: function() {
+                this.ctx.drawImage(this.image, 0, 0);
+            },
+
+            /**
+             * Draw selection box on canvas
+             */
+            drawSelRect: function() {
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(this.downPointX, this.downPointY, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY));
+            },
+
+            /**
+             * This method take care of resizeing the selection box.
+             * It does so by looking on (click == true and hover on resize box == true)
+             * if both are true, it adjust the resize.
+             *
+             * @param  {[type]} e [description]
+             * @return {[type]}   [description]
+             */
+            onImageResize: function(e) {
+                var centerPointX = (this.lastPointX + this.downPointX) / 2;
+                var centerPointY = (this.lastPointY + this.downPointY) / 2;
+                var loc = this.windowToCanvas(e.clientX, e.clientY);
+                this.ctx.fillStyle = '#FF0000';
+                this.ctx.lineWidth = 1;
+                if (this.isResizeBoxHover(loc, centerPointX, this.downPointY)) {
+                    if (this.click) {
+                        this.downPointY = loc.y;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, this.lastPointX, centerPointY)) {
+                    if (this.click) {
+                        this.lastPointX = loc.x;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, centerPointX, this.lastPointY)) {
+                    if (this.click) {
+                        this.lastPointY = loc.y;
+                        this.reDrawCanvas();
+                    }
+                } else if (this.isResizeBoxHover(loc, this.downPointX, centerPointY)) {
+                    if (this.click) {
+                        this.downPointX = loc.x;
+                        this.reDrawCanvas();
+                    }
+                } else {
+                    this.resize = false;
+                    this.reDrawCanvas();
+                }
+            },
+
+            /**
+             * Detect the mousehover on given axis
+             */
+            isResizeBoxHover: function(loc, xPoint, yPoint) {
+                var hoverMargin = 3;
+                if (loc.x > (xPoint - this.hoverBoxSize - hoverMargin) && loc.x < (xPoint + this.hoverBoxSize + hoverMargin) && loc.y > (yPoint - this.hoverBoxSize - hoverMargin) && loc.y < (yPoint + 5 + hoverMargin)) {
+                    this.ctx.fillRect(xPoint - this.hoverBoxSize, yPoint - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                    this.resize = true;
+                    return true;
+                }
+                return false;
+            },
+
+            /**
+             * Draw 4 resize box of 10 x 10
+             * @return {[type]} [description]
+             */
+            drawResizerBox: function() {
+                var centerPointX = (this.lastPointX + this.downPointX) / 2;
+                var centerPointY = (this.lastPointY + this.downPointY) / 2;
+                this.ctx.fillStyle = 'black';
+                this.ctx.lineWidth = 1;
+                this.ctx.fillRect(centerPointX - this.hoverBoxSize, this.downPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(this.lastPointX - this.hoverBoxSize, centerPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(centerPointX - this.hoverBoxSize, this.lastPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+                this.ctx.fillRect(this.downPointX - this.hoverBoxSize, centerPointY - this.hoverBoxSize, this.hoverBoxSize * 2, this.hoverBoxSize * 2);
+            },
+
+            /**
+             * Translate to HTML coardinates to Canvas coardinates.
+             */
+            windowToCanvas: function(x, y) {
+                var canvas = this.ctx.canvas,
+                    bbox = canvas.getBoundingClientRect();
+                return {
+                    x: x - bbox.left * (canvas.width / bbox.width),
+                    y: y - bbox.top * (canvas.height / bbox.height)
+                };
+            },
+
+            /**
+             * Get the canavs, remove cutout, create image elemnet on UI.
+             * @return {[type]}
+             */
+            cropImage: function() {
+				document.getElementById("totalCount").setAttribute("value", "{{ count }}");
+				var hiddenFieldImageName = document.createElement('input');
+				hiddenFieldImageName.setAttribute("type", "hidden");
+				hiddenFieldImageName.setAttribute("name", "imageNameHidden_{{ forloop.counter0 }}");
+				var hiddenField = document.createElement('input');
+				hiddenField.setAttribute("type", "hidden");
+				hiddenField.setAttribute("name", "imageDataHidden_{{ forloop.counter0 }}");
+                var tempCtx = document.createElement('canvas').getContext('2d');
+				//var tempCtx = document.getElementById('croppedPanel_{{ forloop.counter0 }}').getContext("2d");
+                tempCtx.canvas.width = this.lastPointX - this.downPointX;
+                tempCtx.canvas.height = this.lastPointY - this.downPointY;
+                //console.log(this.downPointX, this.downPointY, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY));
+                tempCtx.drawImage(this.image, this.downPointX, this.downPointY, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY), 0, 0, (this.lastPointX - this.downPointX), (this.lastPointY - this.downPointY));
+                var imageData = tempCtx.canvas.toDataURL();	
+				var croppedImageElement = document.getElementById("croppedImage_{{ forloop.counter0 }}");
+				//document.getElementById("croppedImage_{{ forloop.counter0 }}").src = imageData;
+				croppedImageElement.src = imageData;
+				document.getElementById("croppedImageDiv_{{ forloop.counter0 }}").style.display="initial";
+				if(document.getElementById("saveBtnDiv").style.display != "initial") {
+				 document.getElementById("saveBtnDiv").style.display = "initial";
+				}		
+				hiddenField.setAttribute("value", imageData);
+				hiddenFieldImageName.setAttribute("value", "{{ individualNonAdImage.imageName }}");
+				var divElement = document.getElementById("saveBtnDiv").childNodes;
+				//divElement[2].appendChild(hiddenField);
+				var divFormElement = divElement[1].childNodes;
+				//alert(divFormElement[1].childNodes.length);
+				divFormElement[1].appendChild(hiddenField);
+				divFormElement[1].appendChild(hiddenFieldImageName);
+				this.count += 1;
+            }
+        }
+
+        imageCropper.init();
+</script>
+{% endfor %}
+ <div id="saveBtnDiv" class="row" style="display: none;">
+ <div class="col-xs-12 text-center">
+  <form action="/workflow" method="post">
+   {% csrf_token %}
+   <input type="hidden" name="selectedCategory" value="{{ category }}"/>
+   <input type="hidden" name="selectedBucket" value="{{ bucket }}" />
+   <input id="totalCount" type="hidden" name="totalCount" value=""/>
+   <input id="selectedBucket" type="hidden" name="selectedBucket" value="{{ bucket }}" />
+   <input type="submit" name="submit" class="btn btn-primary" value="Save"/>
+  </form>
+ </div> 
+</div>
+{% elif operationStep == "Automatic Annotation" %}
+{% for eachResult in result %}
+ <div class="row">
+  <div class="col-lg-7">
+   <div class="well">
+	 <img src="{{ eachResult.imageUrl }}" style="width: 100%;" />
+   </div>
+  </div>
+  <div class="col-lg-5">
+   <div class="well">
+    <span>
+	 <label>File Name: </label>
+	 {{ eachResult.fileName }}
+	</span>
+	<br />
+	<span>
+	 <label>Media Type: </label>
+	 {{ eachResult.mediaType }}
+	</span>
+	<br />
+	{% if eachResult.advertise %}
+	<span>
+	 <label>Advertise: </label>
+	 <br />
+	</span>
+	{% else %}
+	<span>
+	 <label>Advertise: None</label>
+	 <br />
+	</span>
+	{% endif %}
+    {% for labelResult in eachResult.advertise %}
+    {{ labelResult.labelDescription }}
+	{% if labelResult.labelPercent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ labelResult.labelPercent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ labelResult.labelPercent }}%">
+	  {{ labelResult.labelPercent }}%
+	 </div>
+	</div>
+	{% endif %}
+	{% endfor %}
+	<span>
+	 <label>Logo : </label>
+	 {{ eachResult.logo }}
+	</span>
+	{% if eachResult.logoPercent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ eachResult.labelPercent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ eachResult.logoPercent }}%">
+	  {{ eachResult.logoPercent }}%
+	 </div>
+	</div>
+	{% endif %}
+	<br />
+	<span>
+	 <label>Headline: </label>
+	 {{ eachResult.headLine }}
+	</span>
+	<br />
+	<span>
+	 <label>Text: </label>
+	 {{ eachResult.text }}
+	</span>
+   </div>
+  </div>
+ </div>
+{% endfor %}
+ <div class="row text-center">
+ <div class="col-xs-12">
+  <a href="javascript:history.back()" class="btn btn-primary">Back</a>
+ </div>
+</div>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+</script>
+{% else %}
+ <div class="row text-center">
+  <div class="col-lg-3"></div>
+  <div class="col-lg-6" style="border: 1px solid #a1a1a1; padding: 10px 40px; background: #dddddd; border-radius: 25px;">
+   <h2>Step 4: QA</h2>
+   <p>
+	For Non-AD segmented images, you can manually crop AD segment. Then, storage at AD 
+	database.
+   </p>
+  </div>
+  <div class="col-lg-3"></div>
+ </div>
+ <br/>
+ <ul class="nav nav-tabs">
+ {% for adNonAdSegmentImage in totalSegmentedImages %}
+  {% if forloop.counter0 == 0 %}
+   {% if category == 'General' %}
+    <li class="active">
+   {% else %}
+    <li>
+   {% endif %}
+  {% else %}
+   {% if category == 'General' %}
+    <li>
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'autoad' %}
+	 <li class="active">
+	{% else %}
+	 <li>
+	{% endif %}
+   {% endif %}
+  {% endif %}
+	{% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <a href="#{{ bucket }}-segment-ad" data-toggle="tab">{{ bucket }}-segment-ad</a>
+	{% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <a href="#{{ bucket }}-segment-nonad" data-toggle="tab">{{ bucket }}-segment-nonad</a>
+	{% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <a href="#{{ bucket }}-segment-autoad" data-toggle="tab">{{ bucket }}-segment-autoad</a>
+	{% else %}
+	 <a href="#{{ bucket }}-segment-autononad" data-toggle="tab">{{ bucket }}-segment-autononad</a>
+	{% endif %}
+   </li>
+  {% endfor %}
+ </ul>
+ <div class="tab-content" style="border: 1px solid #ddd;padding: 10px;">
+ {% for adNonAdSegmentImage in totalSegmentedImages %}
+  {% if forloop.counter0 == 0 %}
+   {% if category == 'General' %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade in active">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade in active">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade in active">
+    {% endif %}
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% endif %}
+  {% else %}
+   {% if category == 'General' %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% else %}
+    {% if adNonAdSegmentImage.segmentType == 'ad' %}
+     <div id="{{ bucket }}-segment-ad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+     <div id="{{ bucket }}-segment-nonad" class="tab-pane fade">
+    {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+     <div id="{{ bucket }}-segment-autoad" class="tab-pane fade in active">
+    {% else %}
+     <div id="{{ bucket }}-segment-autononad" class="tab-pane fade">
+    {% endif %}
+   {% endif %}
+  {% endif %}   
+  <form action="/workflow" method="POST">
+  {% csrf_token %}
+   <input type="hidden" name="selectedCategory" value="{{ category }}"/>
+   <input type="hidden" name="selectedBucket" value="{{ bucket }}" />
+   <div class="btn-group">
+    <input name="submit" type="submit" class="btn btn-primary" value="Step 4: QA"/>
+	<input name="submit" type="submit" class="btn btn-primary" value="Automatic Annotation"/>	
+	<input name="submit" type="submit" class="btn btn-primary" value="Move Segments"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="List Segments"/>
+	<input name="submit" type="submit" class="btn btn-primary" value="Delete"/>
+	<a href="/workflow" class="btn btn-primary">Finish Workflow</a>
+   </div>
+   <br/>
+   <br/>
+   <table id="table" class="table table-hover table-bordered">
+    <thead>
+     <tr>
+      <th class="no-sort" ><input type="checkbox" name="chkAll" id="chkAll" value="all"></th>
+      <th>#</th>
+      <th>File Name</th>
+     </tr>
+    </thead>
+    <tbody>
+	 {% if adNonAdSegmentImage.segmentType == 'ad' %}
+	  {% if adNonAdSegmentImage.adSegmentedImages %}
+	   {% for adSegmentImage in adNonAdSegmentImage.adSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ adSegmentImage.image.name }}+{{ adSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ adSegmentImageimage.public_url }}'>" href="{{ adSegmentImage.image.public_url }}" target="_blank">{{ adSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td colspan="1">No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% elif adNonAdSegmentImage.segmentType == 'nonad' %}
+	  {% if adNonAdSegmentImage.nonAdSegmentedImages %}
+	   {% for nonAdSegmentImage in adNonAdSegmentImage.nonAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ nonAdSegmentImage.image.name }}+{{ nonAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ nonAdSegmentImage.image.public_url }}'>" href="{{ nonAdSegmentImage.image.public_url }}" target="_blank">{{ nonAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td colspan="1">No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% elif adNonAdSegmentImage.segmentType == 'autoad' %}
+	  {% if adNonAdSegmentImage.autoAdSegmentedImages %}
+	   {% for autoAdSegmentImage in adNonAdSegmentImage.autoAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ autoAdSegmentImage.image.name }}+{{ autoAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ autoAdSegmentImage.image.public_url }}'>" href="{{ autoAdSegmentImage.image.public_url }}" target="_blank">{{ autoAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td colspan="1">No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% elif adNonAdSegmentImage.segmentType == 'autononad' %}
+	  {% if adNonAdSegmentImage.autoNonAdSegmentedImages %}
+	   {% for autoNonAdSegmentImage in adNonAdSegmentImage.autoNonAdSegmentedImages %}
+	    <tr>
+	     <td><label><input type="checkbox" name="miasCropImages" value="{{ bucket }}+{{ autoNonAdSegmentImage.image.name }}+{{ autoNonAdSegmentImage.image.public_url }}"></label></td>
+		 <td scope="row">{{ forloop.counter }}</td>
+		 <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{ autoNonAdSegmentImage.image.public_url }}'>" href="{{ autoNonAdSegmentImage.image.public_url }}" target="_blank">{{ autoNonAdSegmentImage.filteredName }}</a></td>
+	    </tr>
+	   {% endfor %}
+	  {% else %}
+	   <tr>
+        <td colspan="1">No data available!!</td>
+       </tr>
+	  {% endif %}
+	 {% endif %}
+	</tbody>
+   </table>
+  </form>
+ </div>
+{% endfor %}
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+<script>
+ document.getElementById("workflowJumbotron").style.display = "none";
+ $(document).ready(function() {
+  $('a[data-toggle=tooltip]').tooltip();
+  $('.table').DataTable( {
+    "aLengthMenu": [[5, 10, 15,20,25, -1], [5, 10, 15, 20, 25, "All"]],
+    "iDisplayLength": 10,
+    "columnDefs": [ {
+      "targets": 'no-sort',
+      "orderable": false,
+    } ]
+  } );
+  $("#chkAll").click(function () {
+   $('input:checkbox').not(this).prop('checked', this.checked);
+  });
+ });
+ 
+</script>
+{% endif %}
+{% endblock %}

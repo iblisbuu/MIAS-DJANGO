@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block head_title %} {{ block.super }} | Segmentation Result {% endblock %}
+
+{% block content %}
+{% for individualResult in result %}
+<div class="row">
+ <div class="col-lg-6">
+  <div class="well">
+   <img src="{{ individualResult.inputImage }}" style="width: 100%;"/>
+  </div>
+ </div>
+ <div class="col-lg-6">
+  <div class="well">
+   <img src="data:image/png;base64,{{ individualResult.resultImage }}" style="width: 100%;"/>
+  </div>
+ </div>
+</div>
+{% endfor %}
+<div class="row text-center">
+ <div class="col-xs-12">
+  <a href="/segmentation" class="btn btn-primary">Back</a>
+ </div>
+</div>
+{% endblock %}

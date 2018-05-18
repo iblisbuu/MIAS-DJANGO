@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block head_title %} {{ block.super }} | Detection Result {% endblock %}
+
+{% block content %}
+{% if operation == "Text Detection" %}
+{% for key, value in result.items %}
+ <div class="row">
+  <div class="col-lg-7">
+   <div class="well">
+	 <img src="{{ key }}" style="width: 100%;" />
+   </div>
+  </div>
+  <div class="col-lg-5">
+   <div class="well">
+	{{ value }}
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% elif operation == "Logo Detection" %}
+{% for eachResult in result %}
+ <div class="row">
+  <div class="col-lg-7">
+   <div class="well">
+	 <img src="{{ eachResult.imageUrl }}" style="width: 100%;" />
+   </div>
+  </div>
+  <div class="col-lg-5">
+   <div class="well">
+    {{ eachResult.logoDescription }}
+	{% if eachResult.percent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ eachResult.percent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ eachResult.percent }}%">
+	  {{ eachResult.percent }}%
+	 </div>
+	</div>
+	{% endif %}
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% elif operation == "Label Detection" %}
+{% for eachResult in result %}
+  <div class="row">
+  <div class="col-lg-7">
+   <div class="well">
+	 <img src="{{ eachResult.imageUrl }}" style="width: 100%;" />
+   </div>
+  </div>
+  <div class="col-lg-5">
+   <div class="well">
+    {% for labelResult in eachResult.labelDetectionResult %}
+    {{ labelResult.labelDescription }}
+	{% if labelResult.percent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ labelResult.percent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ labelResult.percent }}%">
+	  {{ labelResult.percent }}%
+	 </div>
+	</div>
+	{% endif %}
+	{% endfor %}
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% elif operation == "Text Display" %}
+{% for eachResult in result %}
+ <div class="row">
+  <div class="col-lg-6">
+   <div class="well">
+    <img src="{{ eachResult.originalImage }}" style="width: 100%;"/>
+   </div>
+  </div>
+  <div class="col-lg-6">
+   <div class="well">
+    {% if eachResult.modifiedImage == "0" %}
+     No text in the image
+	{% else %}
+	 <img src="data:image/png;base64,{{ eachResult.modifiedImage }}" style="width: 100%;"/>
+	{% endif %}
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% elif operation == "Logo Display" %}
+{% for eachResult in result %}
+ <div class="row">
+  <div class="col-lg-6">
+   <div class="well">
+    <img src="{{ eachResult.originalImage }}" style="width: 100%;"/>
+   </div>
+  </div>
+  <div class="col-lg-6">
+   <div class="well">
+    {% if eachResult.modifiedImage == "0" %}
+     No logo in the image
+	{% else %}
+	 <img src="data:image/png;base64,{{ eachResult.modifiedImage }}" style="width: 100%;"/>
+	{% endif %}
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% elif operation == "Automatic Annotation" %}
+{% for eachResult in result %}
+ <div class="row">
+  <div class="col-lg-7">
+   <div class="well">
+	 <img src="{{ eachResult.imageUrl }}" style="width: 100%;" />
+   </div>
+  </div>
+  <div class="col-lg-5">
+   <div class="well">
+    <span>
+	 <label>File Name: </label>
+	 {{ eachResult.fileName }}
+	</span>
+	<br />
+	<span>
+	 <label>Media Type: </label>
+	 {{ eachResult.mediaType }}
+	</span>
+	<br />
+	<span>
+	 <label>Advertise: </label>
+	 <br />
+	</span>
+    {% for labelResult in eachResult.advertise %}
+    {{ labelResult.labelDescription }}
+	{% if labelResult.labelPercent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ labelResult.labelPercent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ labelResult.labelPercent }}%">
+	  {{ labelResult.labelPercent }}%
+	 </div>
+	</div>
+	{% endif %}
+	{% endfor %}
+	<span>
+	 <label>Logo : </label>
+	 {{ eachResult.logo }}
+	</span>
+	{% if eachResult.logoPercent != "0" %}
+	<br />
+	<div class="progress">
+	 <div class="progress-bar" role="progressbar" aria-valuenow="{{ eachResult.labelPercent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ eachResult.logoPercent }}%">
+	  {{ eachResult.logoPercent }}%
+	 </div>
+	</div>
+	{% endif %}
+	<br />
+	<span>
+	 <label>Headline: </label>
+	 {{ eachResult.headLine }}
+	</span>
+	<br />
+	<span>
+	 <label>Text: </label>
+	 {{ eachResult.text }}
+	</span>
+   </div>
+  </div>
+ </div>
+{% endfor %}
+{% endif %}
+<div class="row text-center">
+ <div class="col-xs-12">
+  <a href="javascript:history.back()" class="btn btn-primary">Back</a>
+ </div>
+</div>
+{% endblock %}

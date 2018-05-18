@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+
+{% block head_title %} {{ block.super }} | DETECTION {% endblock %}
+
+{% block content %}
+<div class="row">
+ <div id="detectionCarousel" class="carousel slide" data-ride="carousel" style="foreground: black;">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-target="#detectionCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#detectionCarousel" data-slide-to="1"></li>
+    <li data-target="#detectionCarousel" data-slide-to="2"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    <div class="item active" >
+      <img src="https://storage.googleapis.com/mias-test-static1/static/MIASDETECTION/text.png" alt="Text" >
+    </div>
+    <div class="item" >
+      <img src="https://storage.googleapis.com/mias-test-static1/static/MIASDETECTION/logo.png" alt="Logo" >
+    </div>
+    <div class="item" >
+      <img src="https://storage.googleapis.com/mias-test-static1/static/MIASDETECTION/label.png" alt="Label" >
+    </div>
+  </div>
+
+  <!-- Left and right controls -->
+  <a class="left carousel-control"  data-target="#detectionCarousel" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="right carousel-control"  data-target="#detectionCarousel" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+ </div>
+</div>
+<br />
+<br />
+
+{% if objects %}
+<ul class="nav nav-tabs">
+ {% for key,obj in objects.items %}
+ {% if forloop.counter == 1 %}
+  <li class="active">
+ {% else %}
+  <li>
+ {% endif %}
+   <a  href="#bkt{{forloop.counter}}" data-toggle="tab">Customer - {{key}}</a>
+  </li>
+ {% endfor %}
+</ul>
+<div class="tab-content" style="border: 1px solid #ddd;padding: 10px;border-top: none;">
+ {% for key,blobs in objects.items %}
+ {% if forloop.counter == 1 %}
+ <div id="bkt{{forloop.counter}}" class="tab-pane fade in active">
+ {% else %}
+ <div id="bkt{{forloop.counter}}" class="tab-pane fade">
+ {% endif %}
+  <form name="detectionForm_{{ forloop.counter }}" action="/detection" method="POST">
+   {% csrf_token %}
+   <div class="btn-group">
+    <input name="submit" type="submit" class="btn btn-primary" value="Text Detection" onclick="return submitForm(this.form)"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="Text Display" onclick="return submitForm(this.form)"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="Logo Detection" onclick="return submitForm(this.form)"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="Logo Display" onclick="return submitForm(this.form)"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="Label Detection" onclick="return submitForm(this.form)"/>
+    <input name="submit" type="submit" class="btn btn-primary" value="Automatic Annotation" onclick="return submitForm(this.form)"/>
+   </div>
+   <br/>
+   <br/>
+   <div>
+    <label class="radio-inline"><input type="radio" name="image-type-rb" value="Original" onclick="imagesFolder(this)" checked disabled>Original Images</label>
+    <label class="radio-inline"><input type="radio" name="image-type-rb" value="Segment-Non-Ad" onclick="imagesFolder(this)" disabled>Segmented Non-Ad Images</label>
+    <label class="radio-inline"><input type="radio" name="image-type-rb" value="Segment-Ad" onclick="imagesFolder(this)" disabled>Segmented Ad Images</label>
+   </div>
+   <br/>  
+   {% if public_url%}
+   <div class="alert alert-success alert-dismissable">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+    <strong>Uploaded URL: </strong> {{public_url}}
+   </div>
+   {% endif %}
+   <table id="table_{{ forloop.counter }}" class="table table-hover table-bordered">
+    <thead>
+     <tr>
+      <th class="no-sort" ><input type="checkbox" name="chkAll" id="chkAll" value="all"></th>
+      <th>#</th>
+      <th>File Name</th>
+      <th>Type</th>
+      <th>Created On</th>
+      <!-- <th class="no-sort">Action</th> -->
+     </tr>
+    </thead>
+    <tbody>
+     {% if blobs %}
+      {% for blbs in blobs %}
+	   {% for eachBlob in blbs %}
+	    {% if eachBlob.bucketType == "segmentAd" %}
+	     <tr name="segment-ad-row">
+          <th><label><input type="checkbox" name="miasimages" value="{{eachBlob.public_url}}"></label></th>
+          <th scope="row">{{eachBlob.index|add:'1'}}</th>
+          <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{eachBlob.public_url}}'>" href="{{eachBlob.public_url}}" target="_blank">{{eachBlob.name}}</a></td>
+          <td>{{eachBlob.type}}</td>
+          <td>{{eachBlob.timecreated}}</td>
+          <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+         </tr>
+		{% elif eachBlob.bucketType == "segmentNonAd" %}
+		 <tr name="segment-nonad-row">
+          <th><label><input type="checkbox" name="miasimages" value="{{eachBlob.public_url}}"></label></th>
+          <th scope="row">{{eachBlob.index|add:'1'}}</th>
+          <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{eachBlob.public_url}}'>" href="{{eachBlob.public_url}}" target="_blank">{{eachBlob.name}}</a></td>
+          <td>{{eachBlob.type}}</td>
+          <td>{{eachBlob.timecreated}}</td>
+          <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+         </tr>
+		{% else %}
+		 <tr name="original-row">
+          <th><label><input type="checkbox" name="miasimages" value="{{eachBlob.public_url}}"></label></th>
+          <th scope="row">{{eachBlob.index|add:'1'}}</th>
+          <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{eachBlob.public_url}}'>" href="{{eachBlob.public_url}}" target="_blank">{{eachBlob.name}}</a></td>
+          <td>{{eachBlob.type}}</td>
+          <td>{{eachBlob.timecreated}}</td>
+          <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+         </tr>
+		{% endif %}
+	   {% endfor %}
+       <!--<tr>
+        <th><label><input type="checkbox" name="miasimages" value="{{blbs.public_url}}"></label></th>
+        <th scope="row">{{blbs.index|add:'1'}}</th>
+        <td><a class="blbspopup" data-toggle="tooltip" data-html="true" data-placement="right" title="<img width='100%' height='100%' src='{{blbs.public_url}}'>" href="{{blbs.public_url}}" target="_blank">{{blbs.name}}</a></td>
+        <td>{{blbs.type}}</td>
+        <td>{{blbs.timecreated}}</td>-->
+        <!-- <td class="text-center"><a href="#"><span class="glyphicon glyphicon-trash"></span></a></td> -->
+       <!--</tr>-->
+      {%endfor%}
+     {% else %}
+      <tr>
+       <td>No data available!!</td>
+	   <td></td>
+	   <td></td>
+	   <td></td>
+	   <td></td>
+      </tr>
+     {% endif %}
+    </tbody>
+   </table>
+  </div>
+ </form>
+ {% endfor %}
+ </div>
+{% else %}
+ <p>No bucket data available!!</p>
+{% endif %}
+</div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+    <script>
+    var myApp;
+    myApp = myApp || (function () {
+        var pleaseWaitDiv = $('<div class="modal" id="myModal" data-backdrop="static" data-keyboard="false"><div class="modal-dialog" style="margin: 10% auto;"><div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%">Loading...</div></div></div></div>');
+        return {
+            showPleaseWait: function() {
+                pleaseWaitDiv.modal();
+            },
+            hidePleaseWait: function () {
+                pleaseWaitDiv.modal('hide');
+            },
+
+        };
+    })();
+    $(document).ready(function() {
+      myApp.hidePleaseWait();
+      $('a[data-toggle=tooltip]').tooltip();
+      $('.table').DataTable( {
+        "aLengthMenu": [[5, 10, 15,20,25, -1], [5, 10, 15, 20, 25, "All"]],
+        //"iDisplayLength": 10,
+        "pageLength" : 10,
+        "columnDefs": [ {
+          "targets": 'no-sort',
+          "orderable": false,
+        } ]
+      } );
+      $('input[name="chkAll"]').click(function () {
+        $(this).parents('div:first').find(':checkbox').not(this).prop('checked', this.checked);
+      });
+
+      $("form").submit(function(event){
+        $('.modal').modal('hide');
+        myApp.showPleaseWait();
+      });
+    });
+	
+	function submitForm(selectedForm) {
+	  if($('input[name="chkAll"]:checked').val()== "all") {
+	   if($("input[type=checkbox]:checked").length > 11) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length == 1) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	  else {
+	   if($("input[type=checkbox]:checked").length == 0) {
+	    alert("Please select atleast one image");
+	    return false;
+	   }
+	   else if($("input[type=checkbox]:checked").length > 10) {
+	    alert("You cannot select more than 10 images");
+	    return false;
+	   }
+	   else {
+	    return true;
+	   }
+	  }
+	}
+	
+	function imagesFolder(selectedRadioButton) {
+     //checkedRadioButton = document.getElementsByName("image-type-rb");
+	 //var folderType = "";
+     //if(checkedRadioButton[0].checked) { 
+      //folderType = checkedRadioButton[0].value; 
+     //}
+     //else if(checkedRadioButton[1].checked) {
+      //folderType = checkedRadioButton[1].value;
+     //}
+     //else {
+      //folderType = checkedRadioButton[2].value; 
+     //}
+	 folderType = selectedRadioButton.value;
+	 if(folderType == "Original") {
+	  originalRows = document.getElementsByName("original-row");
+	  segmentNonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentAdRows = document.getElementsByName("segment-ad-row");
+	  alert(originalRows.length + "-" + segmentNonAdRows.length + "-" + segmentAdRows.length);
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "table-row";
+	   originalRows[originalRow].style.width = "100%";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "none";
+	  }
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "none";
+	  }
+	 }
+	 else if(folderType == "Segment-Non-Ad") {
+	  originalRows = document.getElementsByName("original-row");
+	  segmentNonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentAdRows = document.getElementsByName("segment-ad-row");
+	  alert(originalRows.length + "-" + segmentNonAdRows.length + "-" + segmentAdRows.length);
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "none";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "table-row";
+	   segmentNonAdRows[segmentNonAdRow].style.width = "100%";
+	  }
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "none";
+	  }
+	 }
+	 else {
+	  adRows = document.getElementsByName("original-row");
+	  nonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentRows = document.getElementsByName("segment-ad-row");
+	  alert(originalRows.length + "-" + segmentNonAdRows.length + "-" + segmentAdRows.length);
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "table-row";
+	   segmentAdRows[segmentAdRow].style.width = "100%";
+	  }
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "none";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "none";
+	  }
+	 }
+	 //$('.table').clear();
+	 //$('.table').draw();
+    }
+	
+	(function initialImageLoad() {
+	 checkedRadioButton = document.getElementsByName("image-type-rb");
+	 var folderType = "";
+     if(checkedRadioButton[0].checked) {
+      folderType = checkedRadioButton[0].value;
+     }
+     else if(checkedRadioButton[1].checked) {
+      folderType = checkedRadioButton[1].value;
+     }
+     else {
+      folderType = checkedRadioButton[2].value;
+     }
+	 if(folderType == "Original") {
+	  originalRows = document.getElementsByName("original-row");
+	  segmentNonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentAdRows = document.getElementsByName("segment-ad-row");
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "table-row";
+	   originalRows[originalRow].style.width = "100%";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "none";
+	  }
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "none";
+	  }
+	 }
+	 else if(folderType == "Segment-Non-Ad") {
+	  originalRows = document.getElementsByName("original-row");
+	  segmentNonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentAdRows = document.getElementsByName("segment-ad-row");
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "none";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "table-row";
+	   segmentNonAdRows[segmentNonAdRow].style.width = "100%";
+	  }
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "none";
+	  }
+	 }
+	 else {
+	  adRows = document.getElementsByName("original-row");
+	  nonAdRows = document.getElementsByName("segment-nonad-row");
+	  segmentRows = document.getElementsByName("segment-ad-row");
+	  for(segmentAdRow = 0; segmentAdRow < segmentAdRows.length; segmentAdRow++) {
+	   segmentAdRows[segmentAdRow].style.display = "table-row";
+	   segmentAdRows[segmentAdRow].style.width = "100%";
+	  }
+	  for(originalRow = 0; originalRow < originalRows.length; originalRow++) {
+	   originalRows[originalRow].style.display = "none";
+	  }
+	  for(segmentNonAdRow = 0; segmentNonAdRow < segmentNonAdRows.length; segmentNonAdRow++) {
+	   segmentNonAdRows[segmentNonAdRow].style.display = "none";
+	  }
+	 }
+	})();
+    </script>
+
+{% endblock %}

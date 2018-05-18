@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '2#_s*&c(a+87^8%y1t8_n00$99$2z1u5##lb28s-0ibkpq-=h!'
+SECRET_KEY = 'Your google cloud platform key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

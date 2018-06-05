@@ -1,6 +1,6 @@
 """
 Process the request and gives back the corresponding response for /segmentation url
-Author: Jeonkyu Lee, Murali krishnan and Umang Patel
+Author: Jeonkyu Lee and Murali krishnan
 Last Tested: 6/12/2017 by Murali Krishnan
 Verified with: Python 3.6, Django 1.11
 """

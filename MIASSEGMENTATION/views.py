@@ -31,7 +31,7 @@ result = []
 #  Input        : request
 #  Output       : response(a html page along with the data processed for each request which is a context)
 #  Purpose      : To give response to each request for the url '/segmentation'
-#  Author       : Jeonkyu Lee, Murali Krishnan and Umang Patel
+#  Author       : Jeonkyu Lee and Murali Krishnan 
 #  Last Modified: 06/12/2017 by Murali Krishnan
 ############################################################################
 def segmentationHome(request):
@@ -188,7 +188,7 @@ def segmentationHome(request):
 #  Input        : image to be segmented and index of the image in the list
 #  Output       : segmented images
 #  Purpose      : To segment an image
-#  Author       : Jeonkyu Lee, Murali Krishnan and Umang Patel
+#  Author       : Jeonkyu Lee and Murali Krishnan 
 #  Last Modified: 06/12/2017 by Murali Krishnan
 ############################################################################
 def onAdSegment(image, idx):
